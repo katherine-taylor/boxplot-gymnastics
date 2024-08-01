@@ -1,0 +1,31 @@
+---
+title: "Data Collection"
+author: "Katherine Taylor"
+date: today
+format: html
+---
+
+
+```{r}
+#| label: libraries
+#| include: false
+library(tidyverse)
+library(here)
+library(janitor)
+library(pdftools)
+```
+
+
+```{r}
+us_22 <- pdf_text("inputs/data/w_22champs_sr_1.pdf")
+```
+
+
+```{r}
+us_22_clean_1 <- us_22[1] |> 
+    str_remove("2022 U.S. Championships - Women Day 1                                                                                                                 Page: 1\n                                                                                                                                   Printed: 8/19/2022 8:57:08 PM\n\n                                                                                                                                  Women / SR / Senior\nMeet Results                                                                                                                             Session: 2W\nAug 19, 2022\n                                                                                                                                     Judge's Signatures\n\n\n\nRank Num Name                                                                                                                                             AA\n                            Gym\n") |> 
+    str_remove("10\n\n\n\n\nProScore v 5.9.0 - C opy right 1993-2022 A uburn Electronics Group - Licensed to: A uburn Electronics Group\n") |>
+    str_split("\n")
+
+
+```
