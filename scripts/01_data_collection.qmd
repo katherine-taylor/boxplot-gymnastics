@@ -13,19 +13,194 @@ library(tidyverse)
 library(here)
 library(janitor)
 library(pdftools)
+library(glue)
+
+source("scripts/utils.R")
 ```
 
+# Senior Championships Night 1 2022
 
 ```{r}
+#| label: import data 
 us_22 <- pdf_text("inputs/data/w_22champs_sr_1.pdf")
 ```
 
 
 ```{r}
+#| label: remove header footer page 1
 us_22_clean_1 <- us_22[1] |> 
     str_remove("2022 U.S. Championships - Women Day 1                                                                                                                 Page: 1\n                                                                                                                                   Printed: 8/19/2022 8:57:08 PM\n\n                                                                                                                                  Women / SR / Senior\nMeet Results                                                                                                                             Session: 2W\nAug 19, 2022\n                                                                                                                                     Judge's Signatures\n\n\n\nRank Num Name                                                                                                                                             AA\n                            Gym\n") |> 
     str_remove("10\n\n\n\n\nProScore v 5.9.0 - C opy right 1993-2022 A uburn Electronics Group - Licensed to: A uburn Electronics Group\n") |>
-    str_split("\n")
+    str_split("\n") |> 
+    unlist() |> 
+    gsub(pattern = "\\s+", replacement = " ")
 
 
 ```
+
+```{r}
+#| label: remove header footer page 2
+us_22_clean_2 <- us_22[2] |> 
+    str_remove("2022 U.S. Championships - Women Day 1                                                                                                               Page: 2\n                                                                                                                                 Printed: 8/19/2022 8:57:08 PM\n\n                                                                                                                                Women / SR / Senior\nMeet Results                                                                                                                           Session: 2W\nAug 19, 2022\n\n\n\nRank Num Name                                                                                                                                           AA\n                           Gym\n") |> 
+    str_remove("\n\n\n\n\nProScore v 5.9.0 - C opy right 1993-2022 A uburn Electronics Group - Licensed to: A uburn Electronics Group\n") |>
+    str_split("\n") |> 
+    unlist() |> 
+    gsub(pattern = "\\s+", replacement = " ")
+
+```
+
+```{r}
+#| label: remove header footer page 3
+us_22_clean_3 <- us_22[3] |> 
+    str_remove("2022 U.S. Championships - Women Day 1                                                                                                               Page: 3\n                                                                                                                                 Printed: 8/19/2022 8:57:08 PM\n\n                                                                                                                                Women / SR / Senior\nMeet Results                                                                                                                           Session: 2W\nAug 19, 2022\n\n\n\nRank Num Name                                                                                                                                           AA\n                            Gym\n") |> 
+    str_remove("\n\n\n\n\nProScore v 5.9.0 - C opy right 1993-2022 A uburn Electronics Group - Licensed to: A uburn Electronics Group\n") |>
+    str_split("\n") |> 
+    unlist() |> 
+    gsub(pattern = "\\s+", replacement = " ")
+```
+
+
+```{r}
+#| label: use data cleaning function
+us_data_vector <- c(us_22_clean_1, us_22_clean_2, us_22_clean_3)
+
+senior_women_night_1 <- clean_gym_data(us_data_vector)
+```
+
+
+```{r}
+#| label: clean up columns
+senior_women_night_1_df <- senior_women_night_1 |> 
+    mutate(across(vault_d:aa_score, ~parse_number(.x, c("__.___"))),
+    across(vault_d:aa_score, ~replace_na(.x,0)))
+
+```
+
+```{r}
+#| label: save data
+write_csv(senior_women_night_1_df, here("outputs","data","senior_women_night_1_22.csv"))
+```
+
+# Senior Championships Night 1 2023
+
+```{r}
+#| label: import data 2
+us_23 <- pdf_text("inputs/data/w_23champs_sr1.pdf")
+```
+
+
+```{r}
+#| label: remove header footer page 1
+us_23_clean_1 <- us_23[1] |> 
+    str_remove("2023 U.S. Championships - Women Day 1                                                                                                                 Page: 1\n                                                                                                                                   Printed: 8/25/2023 7:36:45 PM\n\n                                                                                                                                  Women / SR / Senior\nMeet Results                                                                                                                             Session: 2W\nAug 25, 2023\n                                                                                                                                     Judge's Signatures\n\n\n\nRank Num Name                                                                                                                                             AA\n                           Gym\n") |> 
+    str_remove("\n\n\n\n\nProScore v 5.9.4 - C opy right 1993-2023 A uburn Electronics Group - Licensed to: A uburn Electronics Group\n") |> 
+    str_split("\n") |> 
+    unlist() |> 
+    gsub(pattern = "\\s+", replacement = " ")
+```
+
+```{r}
+#| label: remove header footer page 2
+us_23_clean_2 <- us_23[2] |> 
+    str_remove("2023 U.S. Championships - Women Day 1                                                                                                               Page: 2\n                                                                                                                                 Printed: 8/25/2023 7:36:45 PM\n\n                                                                                                                                Women / SR / Senior\nMeet Results                                                                                                                           Session: 2W\nAug 25, 2023\n\n\n\nRank Num Name                                                                                                                                           AA\n                          Gym\n") |> 
+    str_remove("\n\n\n\n\nProScore v 5.9.4 - C opy right 1993-2023 A uburn Electronics Group - Licensed to: A uburn Electronics Group\n") |> 
+    str_split("\n") |> 
+    unlist() |> 
+    gsub(pattern = "\\s+", replacement = " ")
+```
+
+
+```{r}
+#| label: remove header footer page 3
+us_23_clean_3 <- us_23[3] |> 
+    str_remove("2023 U.S. Championships - Women Day 1                                                                                                               Page: 3\n                                                                                                                                 Printed: 8/25/2023 7:36:45 PM\n\n                                                                                                                                Women / SR / Senior\nMeet Results                                                                                                                           Session: 2W\nAug 25, 2023\n\n\n\nRank Num Name                                                                                                                                           AA\n                           Gym\n") |> 
+    str_remove("\n\n\n\n\nProScore v 5.9.4 - C opy right 1993-2023 A uburn Electronics Group - Licensed to: A uburn Electronics Group\n") |> 
+    str_split("\n") |> 
+    unlist() |> 
+    gsub(pattern = "\\s+", replacement = " ")
+```
+
+
+```{r}
+#| label: use data cleaning function 
+us_data_vector_1 <- c(us_23_clean_1, us_23_clean_2, us_23_clean_3)
+
+senior_women_night_1_23 <- clean_gym_data(us_data_vector_1)
+```
+
+
+```{r}
+#| label: clean up columns
+senior_women_night_1_23_df <- senior_women_night_1_23 |> 
+    mutate(across(vault_d:aa_score, ~parse_number(.x, c("__.___"))),
+    across(vault_d:aa_score, ~replace_na(.x,0)))
+```
+
+
+```{r}
+#| label: save night 2 data 
+write_csv(senior_women_night_1_23_df, here("outputs","data","senior_women_night_1_23.csv"))
+```
+
+# World Championships 2022
+```{r}
+#| label: import data
+w_22 <- pdf_text("inputs/data/w_22worlds_teamqual.pdf")
+```
+
+```{r}
+us_worlds_clean_22 <- w_22[1] |> 
+    str_remove("                                               51st FIG Artistic Gymnastics World Championships\n                                                 Liverpool (GBR), 29 October - 6 November 2022\n\n\n                                                                Women's Team Qualification\n                                                                        SAT 29 OCT 2022\n\n\n                                                                             Results\n\n\n\n\n                               NOC\n                 Rank Bib                                                                                                                           Total\n                               Name\n\n\n                       ") |> 
+    str_remove("\n\n\n\n\n                                                                                                                                                Official Results Provider\nGARWTEAM--------------QUAL--------_73D 6.0                        Report Created SUN 30 OCT 2022 22:52                                                             Page 1/6\n") |> 
+    str_split("\n") |> 
+    unlist() |> 
+    gsub(pattern = "\\s+", replacement = " ")
+```
+
+```{r}
+#| label: filter to us
+worlds_women_team_qual_22 <- us_worlds_clean_22[19:29] |> 
+    clean_worlds_data() |> 
+    mutate(across(vault_d:floor_score, ~parse_number(.x)),
+    across(gymnast_last_name, str_to_sentence),
+    aa_score = vault_score+ bars_score+ beam_score+ floor_score)
+```
+
+```{r}
+#| label: save worlds 22 data
+write_csv(worlds_women_team_qual_22, here("outputs/data/world_team_qual_22.csv"))
+```
+
+# World Championships 2023
+```{r}
+#| label: import data
+w_23 <- pdf_text("inputs/data/w_23worlds_teamqual.pdf")
+```
+
+```{r}
+us_worlds_clean_23 <- w_23[1] |> 
+    str_remove("                                               52nd FIG Artistic Gymnastics World Championships\n                                                 Antwerp (BEL), 30 September - 8 October 2023\n\n\n                                                                Women's Team Qualification\n                                                                        SUN 1 OCT 2023\n\n\n                                                                             Results\n\n\n\n\n                               NOC\n                 Rank Bib                                                                                                                            Total\n                               Name\n\n\n                       ") |> 
+    str_remove("\n\n\n\n\n                                                                                                                                                 Official Results Provider\nGARWTEAM--------------QUAL--------_73D 3.0                        Report Created MON 2 OCT 2023 22:33                                                               Page 1/6\n") |> 
+    str_split("\n") |> 
+    unlist() |> 
+    gsub(pattern = "\\s+", replacement = " ")
+```
+
+```{r}
+worlds_women_team_qual_23 <- us_worlds_clean_23[19:29] |> 
+    clean_worlds_data_23() |> 
+    mutate(across(vault_d:floor_score, ~parse_number(.x)),
+    across(gymnast_last_name, str_to_sentence),
+    aa_score = vault_score+ bars_score+ beam_score+ floor_score)
+```
+
+```{r}
+write_csv(worlds_women_team_qual_22, here("outputs/data/world_team_qual_23.csv"))
+```
+
+Decisions made:
+- Only 2022 and 2023, 2021 data is the individual all around only 
+- Can recalculate ranks from data, don't need to read in 
+- Looking at night 1 or qualifications scores 
+- Only looking at US data for worlds
+- NAs for events that weren't competed at worlds - zeroes are used in the US championships data
