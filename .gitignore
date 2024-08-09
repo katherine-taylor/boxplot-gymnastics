@@ -6,3 +6,8 @@
 inputs/data
 
 outputs/data
+
+scripts/02_data_representation_files
+
+scripts/03_data_analysis_files
+

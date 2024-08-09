@@ -1,0 +1,118 @@
+---
+title: "Data Representation"
+author: "Katherine Taylor"
+date: today
+format: html
+---
+
+
+```{r}
+#| label: libraries
+#| include: false
+
+library(tidyverse)
+library(here)
+library(scales)
+```
+
+
+```{r}
+#| label: read in data
+#| include: false
+w_22 <- read_csv(here("outputs/data/world_team_qual_22.csv")) |> 
+    mutate(competition = "World Championships 2022")
+w_23 <- read_csv(here("outputs/data/world_team_qual_23.csv")) |> 
+    mutate(competition = "World Championships 2023")
+
+us_22 <- read_csv(here("outputs/data/senior_women_night_1_22.csv")) |> 
+    mutate(competition = "US Championships 2022") |> 
+    select(-rank, -gym, -ends_with("_nd"))
+
+us_23 <- read_csv(here("outputs/data/senior_women_night_1_23.csv")) |> 
+    mutate(competition = "US Championships 2023") |> 
+    select(-rank, -gym, -ends_with("_nd"))
+```
+
+
+```{r}
+#| label: combine data for analysis
+gym_scores <- rbind(w_22, w_23, us_22, us_23) |> 
+    pivot_longer(cols = vault_d:aa_score, names_to = "score_type", values_to = "score")
+```
+
+```{r}
+write_csv(gym_scores, here("outputs/data/combined_scores.csv"))
+```
+
+
+```{r}
+#| label: initial all four plot
+
+event_names <- c(bars_score = "Uneven Bars",
+beam_score = "Balance Beam",
+floor_score = "Floor",
+vault_score = "Vault")
+
+palette <- c("#B8E1FF","#FC814A","#FFD449","#B07BAC","#04724D")
+
+gym_scores |> 
+    filter(score_type %in% c("vault_score","bars_score", "beam_score", "floor_score"),
+    score != 0) |> 
+    ggplot(aes(x = score, y = competition, fill = competition)) +
+    stat_boxplot(geom ='errorbar') +
+    geom_boxplot() +
+    facet_wrap(~score_type, labeller = as_labeller(event_names)) +
+    scale_fill_manual(values = palette) +
+    theme_bw() +
+    theme(legend.position = "none",
+    strip.background = element_rect(fill="white")) +
+    labs(title = str_wrap("Total scores at US Championships tend to be lower than at World Championships",60), subtitle = "Gymnastics total score by event by competition", caption = "Data from https://usagym.org/results/2023/ and https://usagym.org/results/2022/", x = "Total Score", y = "Competition")
+```
+
+```{r}
+#| label: difficulty scores
+
+event_names <- c(bars_d = "Uneven Bars",
+beam_d = "Balance Beam",
+floor_d = "Floor",
+vault_d = "Vault")
+
+palette <- c("#B8E1FF","#FC814A","#FFD449","#B07BAC","#04724D")
+
+gym_scores |> 
+    filter(score_type %in% c("vault_d","bars_d", "beam_d", "floor_d"),
+    score != 0) |> 
+    ggplot(aes(x = score, y = competition, fill = competition)) +
+    stat_boxplot(geom ='errorbar') +
+    geom_boxplot() +
+    facet_wrap(~score_type, labeller = as_labeller(event_names)) +
+    scale_fill_manual(values = palette) +
+    theme_bw() +
+    theme(legend.position = "none",
+    strip.background = element_rect(fill="white")) +
+    labs(title = str_wrap("Difficulty scores at US Championships tend to be lower than at World Championships",60), subtitle = "Gymnastics difficulty score by event by competition", caption = "Data from https://usagym.org/results/2023/ and https://usagym.org/results/2022/", x = "Difficulty Score", y = "Competition")
+```
+
+```{r}
+#| label: execution scores
+
+event_names <- c(bars_e = "Uneven Bars",
+beam_e = "Balance Beam",
+floor_e = "Floor",
+vault_e = "Vault")
+
+palette <- c("#B8E1FF","#FC814A","#FFD449","#B07BAC","#04724D")
+
+gym_scores |> 
+    filter(score_type %in% c("vault_e","bars_e", "beam_e", "floor_e"),
+    score != 0) |> 
+    ggplot(aes(x = score, y = competition, fill = competition)) +
+    stat_boxplot(geom ='errorbar') +
+    geom_boxplot() +
+    facet_wrap(~score_type, labeller = as_labeller(event_names)) +
+    scale_fill_manual(values = palette) +
+    theme_bw() +
+    theme(legend.position = "none",
+    strip.background = element_rect(fill="white")) +
+    labs(title = str_wrap("Execution scores at US Championships tend to be lower than at World Championships",60), subtitle = "Gymnastics execution score by event by competition", caption = "Data from https://usagym.org/results/2023/ and https://usagym.org/results/2022/", x = "Execution Score", y = "Competition")
+```

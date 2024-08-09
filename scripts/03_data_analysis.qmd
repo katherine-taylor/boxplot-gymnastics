@@ -1,0 +1,125 @@
+---
+title: "Data Analysis"
+author: "Katherine Taylor"
+date: today
+format: html
+---
+
+
+```{r}
+#| label: libraries
+#| include: false
+
+library(tidyverse)
+library(janitor)
+library(here)
+library(boot)
+
+# generated with random.org
+set.seed(840929)
+```
+
+
+```{r}
+#| label: read in data
+combined_scores <- read_csv(here("outputs/data/combined_scores.csv"))
+```
+
+
+# 1. Create boxplot with only the gymnasts who competed at both US and World Competitions
+
+```{r}
+#| label: create combined scores
+worlds_only <- combined_scores |>
+    select(-(comp_number)) |> 
+    group_by(gymnast_first_name, gymnast_last_name) |> 
+    pivot_wider(names_from = c(competition), values_from = score) |> 
+    clean_names() |> 
+    ungroup() |> 
+    mutate(both_events_2022 = ifelse(!is.na(world_championships_2022) & !is.na(us_championships_2022),1,0),
+    both_events_2023 = ifelse(!is.na(world_championships_2023) & !is.na(us_championships_2023),1,0)) |> 
+    filter(both_events_2022 == 1 | both_events_2023 == 1) |> 
+    select(-(both_events_2022),-(both_events_2023)) |> 
+    pivot_longer(cols = c(world_championships_2022, world_championships_2023, us_championships_2022, us_championships_2023), names_to = "competition", values_to = "score") |> 
+    mutate(competition = factor(case_when(str_detect(competition, "world_championships_2023") ~ "World Championships 2023",
+    str_detect(competition, "world_championships_2022") ~ "World Championships 2022",
+    str_detect(competition, "us_championships_2022") ~ "US Championships 2022",
+    str_detect(competition, "us_championships_2023")~ "US Championships 2023"), levels = c("World Championships 2023","US Championships 2023","World Championships 2022","US Championships 2022")))
+```
+
+
+```{r}
+#| label: total score boxplot worlds only 
+event_names <- c(bars_score = "Uneven Bars",
+beam_score = "Balance Beam",
+floor_score = "Floor",
+vault_score = "Vault")
+
+palette <- c("#B8E1FF","#FC814A","#FFD449","#B07BAC","#04724D")
+
+worlds_only |> 
+    filter(score_type %in% c("vault_score","bars_score", "beam_score", "floor_score"),
+    score != 0) |> 
+    ggplot(aes(x = score, y = competition, fill = competition)) +
+    stat_boxplot(geom ='errorbar') +
+    geom_boxplot() +
+    facet_wrap(~score_type, labeller = as_labeller(event_names)) +
+    scale_fill_manual(values = palette) +
+    theme_bw() +
+    theme(legend.position = "none",
+    strip.background = element_rect(fill="white")) +
+    labs(title = str_wrap("Total scores on Uneven Bars and Vault tend to be lower at World Championships",60), subtitle = "Gymnastics total score by event by competition, worlds competitors only", caption = "Data from https://usagym.org/results/2023/ and https://usagym.org/results/2022/", x = "Total Score", y = "Competition")
+```
+
+```{r}
+#| label: execution boxplot worlds only 
+worlds_only |> 
+    filter(score_type %in% c("vault_e","bars_e", "beam_e", "floor_e"),
+    score != 0) |> 
+    ggplot(aes(x = score, y = competition, fill = competition)) +
+    stat_boxplot(geom ='errorbar') +
+    geom_boxplot() +
+    facet_wrap(~score_type, labeller = as_labeller(event_names)) +
+    scale_fill_manual(values = palette) +
+    theme_bw() +
+    theme(legend.position = "none",
+    strip.background = element_rect(fill="white")) +
+    labs(title = str_wrap("Execution scores are fairly close between World and US Championships ",60), subtitle = "Gymnastics execution score by event by competition, worlds competitors only", caption = "Data from https://usagym.org/results/2023/ and https://usagym.org/results/2022/", x = "Execution Score", y = "Competition")
+```
+
+# 2. Distributions are small, use boostraping to measure score distribution difference
+
+
+```{r}
+#| label: create bootstrap data
+
+bootstrap_groups <- worlds_only |> 
+    filter(score_type %in% c("vault_score","bars_score","beam_score","floor_score")) |> 
+    drop_na(score) |> 
+    group_by(score_type, competition) |>
+    select(score_type, competition, score) |> 
+    nest() |> 
+    mutate(bootstrap_samples = map(data, ~sample(.x$score, 1000, replace = TRUE))) |> 
+    select(-data) |> 
+    unnest_longer(bootstrap_samples)
+```
+
+
+```{r}
+#| label: boxplot bootstrap resamples 
+
+
+# @TODO title, subtitle for plot
+bootstrap_groups |> 
+    filter(score_type %in% c("vault_score","bars_score", "beam_score", "floor_score"),
+    bootstrap_samples != 0) |> 
+    ggplot(aes(x = bootstrap_samples, y = competition, fill = competition)) +
+    stat_boxplot(geom ='errorbar') +
+    geom_boxplot() +
+    facet_wrap(~score_type, labeller = as_labeller(event_names)) +
+    scale_fill_manual(values = palette) +
+    theme_bw() +
+    theme(legend.position = "none",
+    strip.background = element_rect(fill="white")) +
+    labs(title = str_wrap("Bootstrap title",60), subtitle = "Bootstraped samples", caption = "Data from https://usagym.org/results/2023/ and https://usagym.org/results/2022/", x = "Total Score", y = "Competition")
+```

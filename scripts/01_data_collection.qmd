@@ -195,7 +195,7 @@ worlds_women_team_qual_23 <- us_worlds_clean_23[19:29] |>
 ```
 
 ```{r}
-write_csv(worlds_women_team_qual_22, here("outputs/data/world_team_qual_23.csv"))
+write_csv(worlds_women_team_qual_23, here("outputs/data/world_team_qual_23.csv"))
 ```
 
 Decisions made:
